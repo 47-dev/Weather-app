@@ -6,6 +6,7 @@ const grantAccessContainer = document.querySelector(".grant-location-container")
 const searchForm = document.querySelector("[data-searchForm]");
 const loadingScreen = document.querySelector(".loading-container");
 const userInfoContainer = document.querySelector(".user-info-container");
+const errorTab = document.querySelector(".error-container");
 
 //initially vairables need????
 
@@ -13,6 +14,8 @@ let oldTab = userTab;
 const API_KEY = "d1845658f92b31c64bd94f06f7188c9c";
 oldTab.classList.add("current-tab");
 getfromSessionStorage();
+
+
 
 function switchTab(newTab) {
     if(newTab != oldTab) {
@@ -24,11 +27,13 @@ function switchTab(newTab) {
             //kya search form wala container is invisible, if yes then make it visible
             userInfoContainer.classList.remove("active");
             grantAccessContainer.classList.remove("active");
+            errorTab.classList.remove("active");
             searchForm.classList.add("active");
         }
         else {
             //main pehle search wale tab pr tha, ab your weather tab visible karna h 
             searchForm.classList.remove("active");
+            errorTab.classList.remove("active");
             userInfoContainer.classList.remove("active");
             //ab main your weather tab me aagya hu, toh weather bhi display karna poadega, so let's check local storage first
             //for coordinates, if we haved saved them there.
@@ -76,11 +81,22 @@ async function fetchUserWeatherInfo(coordinates) {
         const  data = await response.json();
 
         loadingScreen.classList.remove("active");
+
+        if (response.status !== 200) {
+            loadingScreen.classList.remove("active");
+            errorTab.classList.add("active");
+            userInfoContainer.classList.remove("active");
+            return;
+          }
+
         userInfoContainer.classList.add("active");
         renderWeatherInfo(data);
+        
     }
     catch(err) {
+        
         loadingScreen.classList.remove("active");
+        
         //HW
 
     }
@@ -100,6 +116,8 @@ function renderWeatherInfo(weatherInfo) {
     const cloudiness = document.querySelector("[data-cloudiness]");
 
     console.log(weatherInfo);
+
+    
 
     //fetch values from weatherINfo object and put it UI elements
     cityName.innerText = weatherInfo?.name;
@@ -160,11 +178,23 @@ async function fetchSearchWeatherInfo(city) {
             `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
           );
         const data = await response.json();
+        
+        if (response.status !== 200) {
+            loadingScreen.classList.remove("active");
+            errorTab.classList.add("active");
+            return;
+          }
+          
+
         loadingScreen.classList.remove("active");
+        
+       
+        
         userInfoContainer.classList.add("active");
         renderWeatherInfo(data);
     }
     catch(err) {
+        loadingScreen.classList.remove("active");
         //hW
     }
 }
